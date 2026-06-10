@@ -918,7 +918,12 @@ namespace LaserGRBL.RasterConverter
 			}
 			catch (Exception ex)
 			{
-				System.Diagnostics.Debug.WriteLine(ex.ToString());
+				Logger.LogException("Image Preview", ex);
+
+				// Keep the import dialog usable when a preview effect is not
+				// supported by the current graphics runtime (for example Wine).
+				if (!MustExitTH && PreviewReady != null)
+					PreviewReady(mResized);
 			}
 			finally
 			{

@@ -236,6 +236,9 @@
     <Compile Include="Tools\Graph.cs" />
     <Compile Include="Tools\MobileAverageCalculator.cs" />
     <Compile Include="Tools\RetainedSetting.cs" />
+    <Compile Include="TracePreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="UserControls\FlatComboBox.cs">
       <SubType>Component</SubType>
     </Compile>

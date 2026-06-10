@@ -238,6 +238,10 @@ namespace LaserGRBL
 			IconsMgr.PrepareMenuItem(donateToolStripMenuItem, "mdi-gift");
 			IconsMgr.PrepareMenuItem(licenseToolStripMenuItem, "mdi-license");
 			IconsMgr.PrepareMenuItem(MnCheckNow, "mdi-cloud-check-variant-outline");
+			IconsMgr.PrepareMenuItem(showBoundingBoxToolStripMenuItem, "mdi-border-all-variant");
+			IconsMgr.PrepareMenuItem(traceShapeToolStripMenuItem, "mdi-auto-fix");
+			IconsMgr.PrepareMenuItem(runOutlineTraceToolStripMenuItem, "mdi-laser-pointer");
+			IconsMgr.PrepareMenuItem(crossCursorToolStripMenuItem, "mdi-cursor-crosshair");
 			IconsMgr.PrepareMenuItem(autosizeModeToolStripMenuItem, "mdi-resize");
 			if (!IconsMgr.LegacyIcons)
 			{
@@ -503,6 +507,7 @@ namespace LaserGRBL
 			MnFileSend.Enabled = Core.CanSendFile;
 			MnStartFromPosition.Enabled = Core.CanSendFile;
 			MnRunMulti.Enabled = Core.CanSendFile || Core.CanResumeHold || Core.CanFeedHold;
+			runOutlineTraceToolStripMenuItem.Enabled = Core.CanRunOutlineTrace;
 			MnGrblConfig.Enabled = true;
 			//MnExportConfig.Enabled = Core.CanImportExport;
 			//MnImportConfig.Enabled = Core.CanImportExport;
@@ -1313,6 +1318,58 @@ namespace LaserGRBL
                 Core.ShowBoundingBox.Value = showBoundingBoxToolStripMenuItem.Checked;
                 (PreviewForm.GrblPanel as GrblPanel3D).RR.Set();
             }
+        }
+
+        private void traceShapeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string traceGCode = Core.EvaluateExpression("[trace]");
+            if (string.IsNullOrWhiteSpace(traceGCode))
+            {
+                MessageBox.Show(
+                    this,
+                    "Load a file containing laser-on movement before opening the trace preview.",
+                    "Trace Preview",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            using (TracePreviewForm preview = new TracePreviewForm(traceGCode))
+                preview.ShowDialog(this);
+        }
+
+        private void runOutlineTraceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!Core.CanRunOutlineTrace)
+            {
+                MessageBox.Show(
+                    this,
+                    "Connect the machine, load an engraving, and wait until the machine is idle.",
+                    "Run Outline at 3%",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            const decimal tracePercentage = 3m;
+            decimal maximumPower = GrblCore.Configuration.MaxPWM;
+            decimal tracePower = GrblFile.CalculateTracePower(maximumPower, tracePercentage);
+            decimal traceSpeed = Core.JogSpeed;
+
+            DialogResult confirmation = MessageBox.Show(
+                this,
+                string.Format(
+                    "The machine will move around the engraving outline with the laser ON.\n\nPower: 3% (S{0} of S{1})\nSpeed: {2} mm/min\n\nClear the machine area and wear laser safety glasses. Start the outline trace?",
+                    tracePower,
+                    maximumPower,
+                    traceSpeed),
+                "Confirm Machine Outline Trace",
+                MessageBoxButtons.OKCancel,
+                MessageBoxIcon.Warning,
+                MessageBoxDefaultButton.Button2);
+
+            if (confirmation == DialogResult.OK)
+                Core.RunOutlineTrace(tracePower, traceSpeed);
         }
 
         private void crossCursorToolStripMenuItem_Click(object sender, EventArgs e)

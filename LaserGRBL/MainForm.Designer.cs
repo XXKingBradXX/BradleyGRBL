@@ -102,6 +102,8 @@
 			this.showLaserOffMovementsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showExecutedCommandsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showBoundingBoxToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.traceShapeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.runOutlineTraceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.crossCursorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.autosizeModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.drawingAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -190,9 +192,9 @@
 			this.splitContainer1.Panel2.SuspendLayout();
 			this.splitContainer1.SuspendLayout();
 			this.SuspendLayout();
-			// 
+			//
 			// StatusBar
-			// 
+			//
 			this.StatusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.TTLLines,
             this.TTTLines,
@@ -332,6 +334,8 @@
             this.MNEsp8266,
             this.schemaToolStripMenuItem,
             this.previewToolStripMenuItem,
+            this.traceShapeToolStripMenuItem,
+            this.runOutlineTraceToolStripMenuItem,
             this.linguaToolStripMenuItem,
             this.toolsToolStripMenuItem,
             this.MnLonger,
@@ -706,6 +710,18 @@
 			resources.ApplyResources(this.showBoundingBoxToolStripMenuItem, "showBoundingBoxToolStripMenuItem");
 			this.showBoundingBoxToolStripMenuItem.Click += new System.EventHandler(this.showBoundingBoxToolStripMenuItem_Click);
 			// 
+			// traceShapeToolStripMenuItem
+			//
+			this.traceShapeToolStripMenuItem.Name = "traceShapeToolStripMenuItem";
+			this.traceShapeToolStripMenuItem.Text = "Trace Preview";
+			this.traceShapeToolStripMenuItem.Click += new System.EventHandler(this.traceShapeToolStripMenuItem_Click);
+			//
+			// runOutlineTraceToolStripMenuItem
+			//
+			this.runOutlineTraceToolStripMenuItem.Name = "runOutlineTraceToolStripMenuItem";
+			this.runOutlineTraceToolStripMenuItem.Text = "Run Outline at 3%";
+			this.runOutlineTraceToolStripMenuItem.Click += new System.EventHandler(this.runOutlineTraceToolStripMenuItem_Click);
+			//
 			// crossCursorToolStripMenuItem
 			// 
 			this.crossCursorToolStripMenuItem.CheckOnClick = true;
@@ -1436,6 +1452,8 @@
 		private System.Windows.Forms.ToolStripMenuItem zoomOutToolStripMenuItem;
 		private System.Windows.Forms.ToolStripSeparator toolStripMenuItem10;
 		private System.Windows.Forms.ToolStripMenuItem showBoundingBoxToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem traceShapeToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem runOutlineTraceToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem crossCursorToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem autosizeModeToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem drawingAreaToolStripMenuItem;
@@ -1453,4 +1471,3 @@
 		private System.Windows.Forms.ToolStripMenuItem MnConfigureLongerWiFi;
 	}
 }
-

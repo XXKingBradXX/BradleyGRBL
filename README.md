@@ -1,3 +1,42 @@
+# BradleyGRBL
+
+BradleyGRBL is a GPLv3 fork of LaserGRBL with two outline-tracing tools:
+
+- **Trace Preview** simulates the generated outline without sending commands.
+- **Run Outline at 3%** moves the connected engraver around that same outline
+  using 3% of the controller's configured maximum laser power.
+
+## Download For Windows
+
+1. Open the [latest BradleyGRBL release](https://github.com/XXKingBradXX/BradleyGRBL/releases/latest).
+2. Download `BradleyGRBL-Windows.zip`.
+3. Extract the ZIP.
+4. Double-click `START_BradleyGRBL.bat`.
+
+Read [WINDOWS_QUICK_START.md](WINDOWS_QUICK_START.md) before connecting a laser.
+The executable remains named `LaserGRBL.exe` to preserve compatibility with the
+upstream project and its existing settings.
+
+## Outline Workflow
+
+1. Import the image and create the engraving.
+2. Use **Trace Preview** to inspect the outline.
+3. Connect the engraver and verify it is idle.
+4. Remove material from the beam path for the first test.
+5. Select **Run Outline at 3%**, review the displayed PWM and speed, then confirm.
+
+The outline action is disabled unless a file is loaded, the machine is
+connected and idle, and the command queue is empty. Laser safety glasses and
+normal machine supervision are still required.
+
+## Upstream Project
+
+BradleyGRBL preserves the LaserGRBL history, attribution, and GPLv3 license.
+The original project is available at
+[arkypita/LaserGRBL](https://github.com/arkypita/LaserGRBL).
+
+---
+
 # LaserGRBL [![Donation](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=4WQX8HUBXRVUU&no_recurring=0&item_name=LaserGRBL&currency_code=EUR)
 Official website [http://lasergrbl.com](http://lasergrbl.com)
 

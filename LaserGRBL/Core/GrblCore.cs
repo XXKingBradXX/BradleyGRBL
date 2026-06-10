@@ -3035,6 +3035,17 @@ namespace LaserGRBL
 		public bool CanSendManualCommand
 		{ get { return IsConnected && MachineStatus != MacStatus.Disconnected && !InProgram; } }
 
+		public bool CanRunOutlineTrace
+		{ get { return IsConnected && HasProgram && MachineStatus == MacStatus.Idle && QueueEmpty && !mDoingSend; } }
+
+		internal void RunOutlineTrace(decimal power, decimal speed)
+		{
+			if (!CanRunOutlineTrace)
+				return;
+
+			ExecuteCustomCode(LoadedFile.GetOutlineGCode(power, speed));
+		}
+
 		public bool CanDoHoming
 		{ get { return IsConnected && (MachineStatus == MacStatus.Idle || MachineStatus == GrblCore.MacStatus.Alarm) && Configuration.HomingEnabled; } }
 
@@ -3251,14 +3262,27 @@ namespace LaserGRBL
 				{
 					string tosend = EvaluateExpression(str);
 
-					if (IsImmediate(tosend))
+					string[] commands = tosend.Split(
+						new string[] { "\r\n", "\n" },
+						StringSplitOptions.RemoveEmptyEntries);
+
+					foreach (string commandText in commands)
 					{
-						byte b = GetImmediate(tosend);
-						if (b == '!') mHoldByUserRequest = true;
-						SendImmediate(b);
+						string command = commandText.Trim();
+						if (command.Length == 0)
+							continue;
+
+						if (IsImmediate(command))
+						{
+							byte b = GetImmediate(command);
+							if (b == '!') mHoldByUserRequest = true;
+							SendImmediate(b);
+						}
+						else
+						{
+							EnqueueCommand(new GrblCommand(command, 0, true));
+						}
 					}
-					else
-					{ EnqueueCommand(new GrblCommand(tosend, 0, true)); }
 				}
 			}
 		}
@@ -3312,6 +3336,27 @@ namespace LaserGRBL
 		{
 			try
 			{
+				String text = m.Value.Substring(1, m.Value.Length - 2);
+				var traceMatch = System.Text.RegularExpressions.Regex.Match(
+					text,
+					@"^trace\s*(?:\(\s*(\d+)\s*(?:,\s*(\d+)\s*)?\))?$",
+					System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+				if (traceMatch.Success)
+				{
+					decimal power = 10;
+					decimal speed = JogSpeed;
+
+					if (traceMatch.Groups[1].Success)
+						decimal.TryParse(traceMatch.Groups[1].Value, out power);
+					if (traceMatch.Groups[2].Success)
+						decimal.TryParse(traceMatch.Groups[2].Value, out speed);
+
+					return LoadedFile != null
+						? LoadedFile.GetOutlineGCode(power, speed)
+						: "";
+				}
+
 				decimal left = LoadedFile != null && LoadedFile.Range.DrawingRange.ValidRange ? LoadedFile.Range.DrawingRange.X.Min : 0;
 				decimal right = LoadedFile != null && LoadedFile.Range.DrawingRange.ValidRange ? LoadedFile.Range.DrawingRange.X.Max : 0;
 				decimal top = LoadedFile != null && LoadedFile.Range.DrawingRange.ValidRange ? LoadedFile.Range.DrawingRange.Y.Max : 0;
@@ -3321,7 +3366,6 @@ namespace LaserGRBL
 				decimal jogstep = JogStep;
 				decimal jogspeed = JogSpeed;
 
-				String text = m.Value.Substring(1, m.Value.Length - 2);
 				Tools.Expression exp = new Tools.Expression(text);
 
 				exp.AddSetVariable("left", (double)left);

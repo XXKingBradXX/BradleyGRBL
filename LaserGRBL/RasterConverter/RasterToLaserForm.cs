@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
 using System.Windows.Forms;
@@ -160,10 +161,10 @@ namespace LaserGRBL.RasterConverter
 
 		private static Image CreatePaper(Image img)
 		{
-			Image newimage = new Bitmap(img.Width + 6, img.Height + 6);
+			Image newimage = new Bitmap(img.Width + 6, img.Height + 6, PixelFormat.Format24bppRgb);
 			using (Graphics g = Graphics.FromImage(newimage))
 			{
-				g.Clear(Color.Transparent);
+				g.Clear(Color.White);
 				g.FillRectangle(Brushes.Gray, 6, 6, img.Width + 2, img.Height + 2); //ombra
 				g.FillRectangle(Brushes.White, 0, 0, img.Width + 2, img.Height + 2); //pagina
 				g.DrawRectangle(Pens.LightGray, 0, 0, img.Width + 1, img.Height + 1); //bordo

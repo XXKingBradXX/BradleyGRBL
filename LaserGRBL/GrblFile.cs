@@ -1444,6 +1444,102 @@ namespace LaserGRBL
 
 		}
 
+		private class YBounds
+		{
+			public decimal Min;
+			public decimal Max;
+
+			public YBounds(decimal min, decimal max)
+			{
+				Min = min;
+				Max = max;
+			}
+		}
+
+		public static decimal CalculateTracePower(decimal maximumPower, decimal percentage)
+		{
+			decimal clampedPercentage = Math.Max(0, Math.Min(100, percentage));
+			return Math.Round(
+				maximumPower * clampedPercentage / 100m,
+				0,
+				MidpointRounding.AwayFromZero);
+		}
+
+		public string GetOutlineGCode(decimal power, decimal speed)
+		{
+			if (list == null || list.Count == 0)
+				return "";
+
+			decimal maximumPower = GrblCore.Configuration != null
+				? GrblCore.Configuration.MaxPWM
+				: power;
+			power = Math.Max(0, Math.Min(maximumPower, power));
+
+			Dictionary<decimal, YBounds> boundsPerY = new Dictionary<decimal, YBounds>();
+			GrblCommand.StatePositionBuilder spb = new GrblCommand.StatePositionBuilder();
+
+			foreach (GrblCommand cmd in list)
+			{
+				spb.AnalyzeCommand(cmd, false);
+				if (spb.LaserBurning)
+				{
+					UpdateOutlineBounds(boundsPerY, spb.Y.Previous, spb.X.Previous);
+					UpdateOutlineBounds(boundsPerY, spb.Y.Number, spb.X.Number);
+				}
+			}
+
+			if (boundsPerY.Count == 0)
+				return "";
+
+			List<decimal> sortedYs = boundsPerY.Keys.OrderBy(y => y).ToList();
+			StringBuilder sb = new StringBuilder();
+			sb.AppendLine("G90");
+			sb.AppendLine("G0 F" + speed.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+			bool first = true;
+			foreach (decimal y in sortedYs)
+			{
+				if (first)
+				{
+					sb.AppendLine("G0 X" + FormatCoordinate(boundsPerY[y].Min) + " Y" + FormatCoordinate(y));
+					sb.AppendLine("M4 S" + power.ToString(System.Globalization.CultureInfo.InvariantCulture));
+					first = false;
+				}
+				else
+				{
+					sb.AppendLine("G1 X" + FormatCoordinate(boundsPerY[y].Min) + " Y" + FormatCoordinate(y));
+				}
+			}
+
+			for (int i = sortedYs.Count - 1; i >= 0; i--)
+			{
+				decimal y = sortedYs[i];
+				sb.AppendLine("G1 X" + FormatCoordinate(boundsPerY[y].Max) + " Y" + FormatCoordinate(y));
+			}
+
+			sb.AppendLine("G1 X" + FormatCoordinate(boundsPerY[sortedYs[0]].Min) + " Y" + FormatCoordinate(sortedYs[0]));
+			sb.AppendLine("M5");
+			return sb.ToString();
+		}
+
+		private static string FormatCoordinate(decimal value)
+		{
+			return value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+		}
+
+		private static void UpdateOutlineBounds(Dictionary<decimal, YBounds> bounds, decimal y, decimal x)
+		{
+			YBounds current;
+			if (!bounds.TryGetValue(y, out current))
+			{
+				bounds[y] = new YBounds(x, x);
+				return;
+			}
+
+			current.Min = Math.Min(current.Min, x);
+			current.Max = Math.Max(current.Max, x);
+		}
+
 		private void Analyze() //analyze the file and build global range and timing for each command
 		{
 			GrblCommand.StatePositionBuilder spb = new GrblCommand.StatePositionBuilder();

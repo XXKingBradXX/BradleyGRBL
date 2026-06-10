@@ -60,21 +60,50 @@ namespace LaserGRBL.RasterConverter
 
 		public static Bitmap Threshold(Image img, float threshold, bool apply)
 		{
-			Bitmap bmp = new Bitmap(img.Width, img.Height);
+			Bitmap bmp = new Bitmap(img.Width, img.Height, PixelFormat.Format24bppRgb);
 
 			using (Graphics g = Graphics.FromImage(bmp))
 			{
 				g.Clear(Color.White); //Threshold is the final transformation 
 				g.DrawImage(img, 0, 0); //so clear any transparent color and apply threshold
-
-				// Create an ImageAttributes object, and set its color threshold.
-				ImageAttributes imageAttr = new ImageAttributes();
-				imageAttr.SetThreshold(threshold);
-
-				if (apply)
-					g.DrawImage(bmp, new Rectangle(0, 0, bmp.Width, bmp.Height), 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, imageAttr);
 			}
+
+			if (apply)
+				ApplyThreshold(bmp, threshold);
+
 			return bmp;
+		}
+
+		private static void ApplyThreshold(Bitmap bmp, float threshold)
+		{
+			Rectangle rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+			BitmapData data = bmp.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
+
+			try
+			{
+				int byteThreshold = Math.Max(0, Math.Min(255, (int)Math.Round(threshold * 255)));
+				int byteCount = Math.Abs(data.Stride) * data.Height;
+				byte[] pixels = new byte[byteCount];
+				Marshal.Copy(data.Scan0, pixels, 0, byteCount);
+
+				for (int y = 0; y < data.Height; y++)
+				{
+					int row = y * Math.Abs(data.Stride);
+					for (int x = 0; x < data.Width; x++)
+					{
+						int pixel = row + x * 3;
+						pixels[pixel] = pixels[pixel] >= byteThreshold ? (byte)255 : (byte)0;
+						pixels[pixel + 1] = pixels[pixel + 1] >= byteThreshold ? (byte)255 : (byte)0;
+						pixels[pixel + 2] = pixels[pixel + 2] >= byteThreshold ? (byte)255 : (byte)0;
+					}
+				}
+
+				Marshal.Copy(pixels, 0, data.Scan0, byteCount);
+			}
+			finally
+			{
+				bmp.UnlockBits(data);
+			}
 		}
 
 		private static Bitmap draw_adjusted_image(Image img, ColorMatrix cm)
