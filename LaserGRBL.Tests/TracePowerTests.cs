@@ -26,5 +26,30 @@ namespace LaserGRBL.Tests
         {
             Assert.Equal(expected, GrblFile.CalculateTracePower(maximumPower, percentage));
         }
+
+        [Theory]
+        [InlineData("1", 1)]
+        [InlineData("1500", 1500)]
+        [InlineData("100000", 100000)]
+        public void TryParseOutlineTraceSpeed_AcceptsValidSpeed(string text, int expected)
+        {
+            decimal speed;
+
+            Assert.True(MainForm.TryParseOutlineTraceSpeed(text, out speed));
+            Assert.Equal(expected, speed);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("0")]
+        [InlineData("-1")]
+        [InlineData("100001")]
+        [InlineData("fast")]
+        public void TryParseOutlineTraceSpeed_RejectsInvalidSpeed(string text)
+        {
+            decimal speed;
+
+            Assert.False(MainForm.TryParseOutlineTraceSpeed(text, out speed));
+        }
     }
 }

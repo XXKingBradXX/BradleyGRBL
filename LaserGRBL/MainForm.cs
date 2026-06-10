@@ -10,6 +10,7 @@ using LaserGRBL.WiFiConfigurator;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -1354,7 +1355,22 @@ namespace LaserGRBL
             const decimal tracePercentage = 3m;
             decimal maximumPower = GrblCore.Configuration.MaxPWM;
             decimal tracePower = GrblFile.CalculateTracePower(maximumPower, tracePercentage);
-            decimal traceSpeed = Core.JogSpeed;
+            decimal defaultTraceSpeed = Settings.GetObject("Outline Trace Speed", Core.JogSpeed);
+            InputBoxResult speedResult = InputBox.Show(
+                this,
+                "Enter outline speed in mm/min (1-100000):",
+                "Outline Trace Speed",
+                defaultTraceSpeed.ToString(CultureInfo.InvariantCulture),
+                ValidateOutlineTraceSpeed);
+
+            if (!speedResult.OK)
+                return;
+
+            decimal traceSpeed;
+            if (!TryParseOutlineTraceSpeed(speedResult.Text, out traceSpeed))
+                return;
+
+            Settings.SetObject("Outline Trace Speed", traceSpeed);
 
             DialogResult confirmation = MessageBox.Show(
                 this,
@@ -1370,6 +1386,36 @@ namespace LaserGRBL
 
             if (confirmation == DialogResult.OK)
                 Core.RunOutlineTrace(tracePower, traceSpeed);
+        }
+
+        private static void ValidateOutlineTraceSpeed(object sender, InputBoxValidatingArgs e)
+        {
+            decimal speed;
+            if (!TryParseOutlineTraceSpeed(e.Text, out speed))
+            {
+                e.Cancel = true;
+                e.Message = "Enter a speed from 1 to 100000 mm/min.";
+            }
+        }
+
+        internal static bool TryParseOutlineTraceSpeed(string text, out decimal speed)
+        {
+            bool parsed = decimal.TryParse(
+                text,
+                NumberStyles.Number,
+                CultureInfo.CurrentCulture,
+                out speed);
+
+            if (!parsed)
+            {
+                parsed = decimal.TryParse(
+                    text,
+                    NumberStyles.Number,
+                    CultureInfo.InvariantCulture,
+                    out speed);
+            }
+
+            return parsed && speed >= 1m && speed <= 100000m;
         }
 
         private void crossCursorToolStripMenuItem_Click(object sender, EventArgs e)

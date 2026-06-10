@@ -20,10 +20,12 @@ The package is portable and does not need an installer. Windows 10 or 11 with
 4. For the first physical test, remove the workpiece and keep the beam path
    clear.
 5. Select **Run Outline at 3%**.
-6. Check the displayed PWM and speed, wear laser safety glasses, then confirm.
+6. Enter the speed you want in mm/min. Lower values move more slowly.
+7. Check the displayed PWM and speed, wear laser safety glasses, then confirm.
 
 The machine action uses 3% of the controller's configured maximum PWM. For
-example, `$30=1000` produces `S30`.
+example, `$30=1000` produces `S30`. BradleyGRBL remembers the last outline
+speed you entered.
 
 ## Safety
 
