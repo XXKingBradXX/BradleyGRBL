@@ -39,6 +39,7 @@ namespace LaserGRBL
 			ColorScheme.CurrentScheme = Settings.GetObject("Color Schema", Scheme.CADDark);
 
 			InitializeComponent();
+            PreviewForm.RunOutlineTraceRequested += RunOutlineTrace;
 			ExceptionManager.ParentMain = this;
 
 			mLineWidthMenu = new List<ToolStripMenuItem>()
@@ -241,7 +242,7 @@ namespace LaserGRBL
 			IconsMgr.PrepareMenuItem(MnCheckNow, "mdi-cloud-check-variant-outline");
 			IconsMgr.PrepareMenuItem(showBoundingBoxToolStripMenuItem, "mdi-border-all-variant");
 			IconsMgr.PrepareMenuItem(traceShapeToolStripMenuItem, "mdi-auto-fix");
-			IconsMgr.PrepareMenuItem(runOutlineTraceToolStripMenuItem, "mdi-laser-pointer");
+			IconsMgr.PrepareMenuItem(outlineTraceSpeedToolStripMenuItem, "mdi-laser-pointer");
 			IconsMgr.PrepareMenuItem(crossCursorToolStripMenuItem, "mdi-cursor-crosshair");
 			IconsMgr.PrepareMenuItem(autosizeModeToolStripMenuItem, "mdi-resize");
 			if (!IconsMgr.LegacyIcons)
@@ -508,7 +509,7 @@ namespace LaserGRBL
 			MnFileSend.Enabled = Core.CanSendFile;
 			MnStartFromPosition.Enabled = Core.CanSendFile;
 			MnRunMulti.Enabled = Core.CanSendFile || Core.CanResumeHold || Core.CanFeedHold;
-			runOutlineTraceToolStripMenuItem.Enabled = Core.CanRunOutlineTrace;
+			outlineTraceSpeedToolStripMenuItem.Enabled = true;
 			MnGrblConfig.Enabled = true;
 			//MnExportConfig.Enabled = Core.CanImportExport;
 			//MnImportConfig.Enabled = Core.CanImportExport;
@@ -1339,51 +1340,52 @@ namespace LaserGRBL
                 preview.ShowDialog(this);
         }
 
-        private void runOutlineTraceToolStripMenuItem_Click(object sender, EventArgs e)
+        private void outlineTraceSpeedToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!Core.CanRunOutlineTrace)
+            decimal currentSpeed = GetOutlineTraceSpeed(Core.JogSpeed);
+            if (currentSpeed < 1m || currentSpeed > 100000m)
+                currentSpeed = Core.JogSpeed >= 1 && Core.JogSpeed <= 100000 ? Core.JogSpeed : 1000m;
+            InputBoxResult result = InputBox.Show(this,
+                "Enter outline speed in mm/min (1-100000):", "Outline Trace Speed",
+                currentSpeed.ToString(CultureInfo.CurrentCulture), ValidateOutlineTraceSpeed);
+            decimal speed;
+            if (result.OK && TryParseOutlineTraceSpeed(result.Text, out speed))
+                Settings.SetObject("Outline Trace Speed", speed);
+        }
+
+        internal static decimal GetOutlineTraceSpeed(int defaultSpeed)
+        {
+            decimal fallback = defaultSpeed >= 1 && defaultSpeed <= 100000 ? defaultSpeed : 1000m;
+            if (!Settings.ExistObject("Outline Trace Speed")) return fallback;
+            decimal stored = Settings.GetObject("Outline Trace Speed", decimal.MinValue);
+            if (stored == decimal.MinValue)
             {
-                MessageBox.Show(
-                    this,
-                    "Connect the machine, load an engraving, and wait until the machine is idle.",
-                    "Run Outline at 3%",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                int legacy = Settings.GetObject("Outline Trace Speed", int.MinValue);
+                if (legacy != int.MinValue) return legacy;
+            }
+            // Preserve invalid values so the machine action fails closed.
+            return stored;
+        }
+
+        private void RunOutlineTrace(object sender, EventArgs e)
+        {
+            if (!Core.CanRunOutlineTrace) return;
+            decimal traceSpeed = GetOutlineTraceSpeed(Core.JogSpeed);
+            if (traceSpeed < 1m || traceSpeed > 100000m)
+            {
+                MessageBox.Show(this, "Set a valid speed in Outline Trace Speed in the top menu before tracing.",
+                    "Outline Trace Speed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             const decimal tracePercentage = 3m;
             decimal maximumPower = GrblCore.Configuration.MaxPWM;
             decimal tracePower = GrblFile.CalculateTracePower(maximumPower, tracePercentage);
-            decimal defaultTraceSpeed = Settings.GetObject("Outline Trace Speed", Core.JogSpeed);
-            InputBoxResult speedResult = InputBox.Show(
-                this,
-                "Enter outline speed in mm/min (1-100000):",
-                "Outline Trace Speed",
-                defaultTraceSpeed.ToString(CultureInfo.InvariantCulture),
-                ValidateOutlineTraceSpeed);
-
-            if (!speedResult.OK)
-                return;
-
-            decimal traceSpeed;
-            if (!TryParseOutlineTraceSpeed(speedResult.Text, out traceSpeed))
-                return;
-
-            Settings.SetObject("Outline Trace Speed", traceSpeed);
-
-            DialogResult confirmation = MessageBox.Show(
-                this,
+            DialogResult confirmation = MessageBox.Show(this,
                 string.Format(
                     "The machine will move around the engraving outline with the laser ON.\n\nPower: 3% (S{0} of S{1})\nSpeed: {2} mm/min\n\nClear the machine area and wear laser safety glasses. Start the outline trace?",
-                    tracePower,
-                    maximumPower,
-                    traceSpeed),
-                "Confirm Machine Outline Trace",
-                MessageBoxButtons.OKCancel,
-                MessageBoxIcon.Warning,
-                MessageBoxDefaultButton.Button2);
-
+                    tracePower, maximumPower, traceSpeed),
+                "Confirm Machine Outline Trace", MessageBoxButtons.OKCancel,
+                MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
             if (confirmation == DialogResult.OK)
                 Core.RunOutlineTrace(tracePower, traceSpeed);
         }

@@ -20,11 +20,22 @@ namespace LaserGRBL
     public partial class PreviewForm : System.Windows.Forms.UserControl
 	{
 		private GrblCore mCore;
+        private readonly ImageButton BtnOutlineTrace;
+        public event EventHandler RunOutlineTraceRequested;
 		public IGrblPanel GrblPanel { private set; get; } = null;
 
 		public PreviewForm()
 		{
 			InitializeComponent();
+            BtnOutlineTrace = new ImageButton {
+                Name = "BtnOutlineTrace", Size = new Size(49, 49), Margin = new Padding(2),
+                SizingMode = ImageButton.SizingModes.FixedSize, RoundedBorders = true,
+                BorderStyle = IconsMgr.LegacyIcons ? BorderStyle.FixedSingle : BorderStyle.None,
+                Enabled = false
+            };
+            IconsMgr.PrepareButton(BtnOutlineTrace, "custom-framing", BtnOutlineTrace.Size);
+            TT.SetToolTip(BtnOutlineTrace, "Run outline at 3% (edit speed in the top menu)");
+            BtnOutlineTrace.Click += BtnOutlineTraceClick;
             CreatePanel();
             CustomButtonArea.OrderChanged += CustomButtonArea_OrderChanged;
 			IconsMgr.PrepareButton(BtnReset, "custom-reset");
@@ -76,6 +87,12 @@ namespace LaserGRBL
             tableLayoutPanel1.Controls.Add(GrblPanel as Control);
         }
 
+        private void BtnOutlineTraceClick(object sender, EventArgs e)
+        {
+            if (mCore != null && mCore.CanRunOutlineTrace)
+                RunOutlineTraceRequested?.Invoke(this, EventArgs.Empty);
+        }
+
         private void CustomButtonArea_OrderChanged(int oldindex, int newindex)
 		{
 			CustomButtons.Reorder(oldindex, newindex);
@@ -104,9 +121,11 @@ namespace LaserGRBL
 			BtnStop.Enabled = mCore.CanFeedHold;
 			BtnResume.Enabled = mCore.CanResumeHold;
 			BtnZeroing.Enabled = mCore.CanDoZeroing;
-			foreach (CustomButtonIB ib in CustomButtonArea.Controls)
-			{
-                ib.RefreshEnabled();
+			BtnOutlineTrace.Enabled = mCore.CanRunOutlineTrace;
+            foreach (Control control in CustomButtonArea.Controls)
+            {
+                CustomButtonIB ib = control as CustomButtonIB;
+                if (ib != null) ib.RefreshEnabled();
             }
 				
 
@@ -165,7 +184,8 @@ namespace LaserGRBL
                 }
                 CustomButtonArea.Controls.Add(ib);
 			}
-
+            // Built-in action is always last, never serialized as a user macro.
+            CustomButtonArea.Controls.Add(BtnOutlineTrace);
 		}
 
         public List<CustomButtonIB> CustomImageButtons

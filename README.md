@@ -23,8 +23,9 @@ upstream project and its existing settings.
 2. Use **Trace Preview** to inspect the outline.
 3. Connect the engraver and verify it is idle.
 4. Remove material from the beam path for the first test.
-5. Select **Run Outline at 3%** and choose the movement speed in mm/min.
-6. Review the displayed PWM and speed, then confirm.
+5. Set **Outline Trace Speed...** in the top bar (mm/min). This can be edited while disconnected.
+6. Click the outline icon immediately after the lightbulb in the bottom button row.
+7. Review the displayed PWM and saved speed, then confirm. The same route runs at that speed; edits apply to the next run. The speed prompt is not repeated for every button press.
 
 The outline action is disabled unless a file is loaded, the machine is
 connected and idle, and the command queue is empty. Laser safety glasses and

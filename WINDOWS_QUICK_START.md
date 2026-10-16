@@ -19,9 +19,9 @@ The package is portable and does not need an installer. Windows 10 or 11 with
 3. Connect the engraver and wait for the status to show **Idle**.
 4. For the first physical test, remove the workpiece and keep the beam path
    clear.
-5. Select **Run Outline at 3%**.
-6. Enter the speed you want in mm/min. Lower values move more slowly.
-7. Check the displayed PWM and speed, wear laser safety glasses, then confirm.
+5. Select **Outline Trace Speed...** in the top bar and enter mm/min. Lower values move more slowly. This setting is available even while disconnected.
+6. Click the outline icon just after the lightbulb in the bottom horizontal button row. It uses the saved speed without reopening the speed prompt.
+7. Check the displayed PWM and speed, wear laser safety glasses, then confirm. Adjust the top-bar setting for the next run if needed.
 
 The machine action uses 3% of the controller's configured maximum PWM. For
 example, `$30=1000` produces `S30`. BradleyGRBL remembers the last outline

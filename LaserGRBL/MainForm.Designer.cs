@@ -103,7 +103,7 @@
 			this.showExecutedCommandsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showBoundingBoxToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.traceShapeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.runOutlineTraceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.outlineTraceSpeedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.crossCursorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.autosizeModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.drawingAreaToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -335,7 +335,7 @@
             this.schemaToolStripMenuItem,
             this.previewToolStripMenuItem,
             this.traceShapeToolStripMenuItem,
-            this.runOutlineTraceToolStripMenuItem,
+            this.outlineTraceSpeedToolStripMenuItem,
             this.linguaToolStripMenuItem,
             this.toolsToolStripMenuItem,
             this.MnLonger,
@@ -716,11 +716,11 @@
 			this.traceShapeToolStripMenuItem.Text = "Trace Preview";
 			this.traceShapeToolStripMenuItem.Click += new System.EventHandler(this.traceShapeToolStripMenuItem_Click);
 			//
-			// runOutlineTraceToolStripMenuItem
+			// outlineTraceSpeedToolStripMenuItem
 			//
-			this.runOutlineTraceToolStripMenuItem.Name = "runOutlineTraceToolStripMenuItem";
-			this.runOutlineTraceToolStripMenuItem.Text = "Run Outline at 3%";
-			this.runOutlineTraceToolStripMenuItem.Click += new System.EventHandler(this.runOutlineTraceToolStripMenuItem_Click);
+			this.outlineTraceSpeedToolStripMenuItem.Name = "outlineTraceSpeedToolStripMenuItem";
+			this.outlineTraceSpeedToolStripMenuItem.Text = "Outline Trace Speed...";
+			this.outlineTraceSpeedToolStripMenuItem.Click += new System.EventHandler(this.outlineTraceSpeedToolStripMenuItem_Click);
 			//
 			// crossCursorToolStripMenuItem
 			// 
@@ -1453,7 +1453,7 @@
 		private System.Windows.Forms.ToolStripSeparator toolStripMenuItem10;
 		private System.Windows.Forms.ToolStripMenuItem showBoundingBoxToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem traceShapeToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem runOutlineTraceToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem outlineTraceSpeedToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem crossCursorToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem autosizeModeToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem drawingAreaToolStripMenuItem;
