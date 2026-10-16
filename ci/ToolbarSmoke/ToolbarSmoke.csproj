@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup><TargetFramework>net48</TargetFramework><UseWindowsForms>true</UseWindowsForms><OutputType>Exe</OutputType><AssemblyName>BradleyGRBL.ToolbarSmoke</AssemblyName></PropertyGroup>
+  <ItemGroup><Reference Include="LaserGRBL"><HintPath>../../LaserGRBL/bin/Release/LaserGRBL.exe</HintPath><Private>true</Private></Reference></ItemGroup>
+</Project>

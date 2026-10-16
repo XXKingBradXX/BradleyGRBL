@@ -1,0 +1,57 @@
+name: Windows toolbar verification
+on:
+  push:
+    branches: [fix/outline-toolbar]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-test-ui:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - uses: NuGet/setup-nuget@v2
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Obtain legacy framework reference assemblies
+        run: nuget install Microsoft.NETFramework.ReferenceAssemblies.net40 -Version 1.0.3 -OutputDirectory .ci-packages -NonInteractive
+      - name: Compile Windows application
+        shell: pwsh
+        run: |
+          $refs = Join-Path $pwd '.ci-packages/Microsoft.NETFramework.ReferenceAssemblies.net40.1.0.3/build/.NETFramework/v4.0'
+          msbuild LaserGRBL/LaserGRBL.csproj /t:Rebuild /p:Configuration=Release "/p:FrameworkPathOverride=$refs" /p:GenerateResourceMSBuildArchitecture=CurrentArchitecture /v:minimal
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Execute trace and toolbar regression tests
+        run: dotnet test ci/WindowsTests/WindowsTests.csproj -c Release --logger "trx;LogFileName=windows-tests.trx" --results-directory ci/artifacts/test-results
+      - name: Show and capture real disconnected Windows UI
+        shell: pwsh
+        run: |
+          dotnet build ci/ToolbarSmoke/ToolbarSmoke.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item LaserGRBL/bin/Release/* ci/ToolbarSmoke/bin/Release/net48/ -Recurse -Force
+          & ci/ToolbarSmoke/bin/Release/net48/BradleyGRBL.ToolbarSmoke.exe ci/artifacts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Package portable preview
+        shell: pwsh
+        run: |
+          New-Item ci/artifacts/BradleyGRBL -ItemType Directory -Force | Out-Null
+          Copy-Item LaserGRBL/bin/Release/* ci/artifacts/BradleyGRBL/ -Recurse -Force
+          Copy-Item distribution/windows/* ci/artifacts/BradleyGRBL/ -Force
+          Copy-Item LICENSE.md ci/artifacts/BradleyGRBL/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: BradleyGRBL-toolbar-verification
+          path: |
+            ci/artifacts/*.png
+            ci/artifacts/*.txt
+            ci/artifacts/test-results
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BradleyGRBL-toolbar-Windows
+          path: ci/artifacts/BradleyGRBL/
+          if-no-files-found: error
