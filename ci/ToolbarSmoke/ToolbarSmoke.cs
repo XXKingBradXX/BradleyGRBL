@@ -53,7 +53,8 @@ internal static class ToolbarSmoke
         Settings.SetObject("Auto Update", false);
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        ThemeMgr.Initialize();
+        typeof(MainForm).Assembly.GetType("LaserGRBL.UserControls.ThemeMgr", true)
+            .GetMethod("Initialize", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
         IconsMgr.Initialize();
         CustomButtons.LoadFile();
         using (MainForm form = new MainForm())
